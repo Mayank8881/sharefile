@@ -31,3 +31,22 @@ export const getDocsAPI = async (uid) =>{
     .order("created_at", { ascending: false });
     return res.data;
 }
+
+export const deleteDocAPI = async (item) =>{
+    const res=await supabase.auth.getUser();
+    await bucket.remove([item.file_path])
+    await supabase.from('doc').delete().eq('id',item.id).eq('uid',res.data.user.id)
+}
+
+// export const getDocAPI=async (id) =>{
+//     await supabase.from('doc').select('*').eq('id',id).single();
+// }
+export const getDocAPI = async (id) => {
+    const { data, error } = await supabase.from("doc").select("*").eq("id", id).single();
+    if (error) {
+      console.error("Error fetching document:", error);
+      return null;
+    }
+    return data;
+  };
+  
