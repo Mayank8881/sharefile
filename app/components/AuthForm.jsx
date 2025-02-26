@@ -9,26 +9,27 @@ const AuthForm = ({ isLogin = true }) => {
     const handleChange=(e)=>{
         setVal({...val,[e.target.name]:e.target.value});
     }
-    const handleSubmit= async (e)=>{
-        e.preventDefault();
-        console.log(val);
-
-        if(isLogin){
-          const error=await loginAPI(val);
-          if(!error){
-            alert("SignIn successful");
-            router.push('/');
-          } 
-        } else{
-            const error=await signupAPI(val);
-            if(!error){
-                alert("Signup successful");
-                router.push('/');
-            } 
-
-        }
-
-    }
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      console.log(val);
+  
+      if (isLogin) {
+          const error = await loginAPI(val);
+          if (!error) {
+              alert("SignIn successful");
+  
+              router.push('/');
+          }
+      } else {
+          const error = await signupAPI(val);
+          if (!error) {
+              alert("Signup successful");
+  
+              router.push('/')
+          }
+      }
+  };
+  
 
   return (
     <div className="max-w-screen-sm mx-auto mt-12 rounded-md p-5 bg-white md:border md:shadow-md">
