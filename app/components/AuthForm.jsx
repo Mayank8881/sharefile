@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { loginAPI, signupAPI } from "../endpoints/auth";
 const AuthForm = ({ isLogin = true }) => {
-    
+    const router=useRouter();
     const[val,setVal]=useState({name:"",email:"",password:""});
     const handleChange=(e)=>{
         setVal({...val,[e.target.name]:e.target.value});
@@ -10,7 +12,24 @@ const AuthForm = ({ isLogin = true }) => {
     const handleSubmit= async (e)=>{
         e.preventDefault();
         console.log(val);
+
+        if(isLogin){
+          const error=await loginAPI(val);
+          if(!error){
+            alert("SignIn successful");
+            router.push('/');
+          } 
+        } else{
+            const error=await signupAPI(val);
+            if(!error){
+                alert("Signup successful");
+                router.push('/');
+            } 
+
+        }
+
     }
+
   return (
     <div className="max-w-screen-sm mx-auto mt-12 rounded-md p-5 bg-white md:border md:shadow-md">
       <h3 className="text-center text-2xl font-bold mb-5">
