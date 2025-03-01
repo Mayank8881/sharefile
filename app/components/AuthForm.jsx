@@ -16,14 +16,14 @@ const AuthForm = ({ isLogin = true }) => {
       if (isLogin) {
           const error = await loginAPI(val);
           if (!error) {
-              router.push('/');
+              router.push('/home');
           }
       } else {
           const error = await signupAPI(val);
           if (!error) {
               alert("Signup successful");
   
-              router.push('/')
+              router.push('/home')
           }
       }
   };

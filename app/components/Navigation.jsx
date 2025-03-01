@@ -18,7 +18,7 @@ const Navigation = () => {
 
   const handleLogout=async()=>{
     await logoutAPI();
-    router.replace('/login');
+    router.replace('/');
   }
 
   return (
