@@ -16,8 +16,6 @@ const AuthForm = ({ isLogin = true }) => {
       if (isLogin) {
           const error = await loginAPI(val);
           if (!error) {
-              alert("SignIn successful");
-  
               router.push('/');
           }
       } else {

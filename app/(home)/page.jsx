@@ -19,7 +19,7 @@ export default function Home() {
                 router.push("/login");
             } else {
                 setUser(data.user);
-                const docs = await getDocsAPI(data.user.id);
+                const docs = await getDocsAPI(data.user.id); // Fetch only user's files
                 setData(docs);
             }
         }
@@ -29,5 +29,5 @@ export default function Home() {
 
     if (!user) return <p>Loading...</p>;
 
-    return <Content data={data} />;
+    return <Content data={data} user={user} />;
 }

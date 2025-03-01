@@ -69,7 +69,7 @@ const FilePage = () => {
 
   return (
     <div className="max-w-screen-sm mx-auto mt-20 border p-4 flex flex-col items-center gap-4">
-      <h4 className="font-bold text-lg">{data.title}</h4>
+      <h4 className="font-bold text-xl ">{data.title}</h4>
 
       {/* Download Button */}
       <a href={data.file_url} className="bg-slate-800 text-white rounded-md py-2 px-4 w-full text-center">
@@ -79,7 +79,7 @@ const FilePage = () => {
       {/* Copy Path Button */}
       <button 
         onClick={handleCopy}
-        className="bg-gray-500 text-white rounded-md py-2 px-4 w-full text-center"
+        className="bg-slate-800 text-white rounded-md py-2 px-4 w-full text-center"
       >
         Copy Path
       </button>
@@ -88,7 +88,7 @@ const FilePage = () => {
       <input
         type="email"
         placeholder="Enter email to share"
-        className="border p-2 w-full"
+        className="border p-2 w-full bg-gray-200 text-slate-800 text-center"
         value={recipientEmail}
         onChange={(e) => setRecipientEmail(e.target.value)}
       />
