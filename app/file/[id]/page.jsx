@@ -106,7 +106,7 @@ const FilePage = () => {
   return (
     <>
     <Navigation/>
-    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-primary/90 to-purple-600 text-primary-foreground relative">
+    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-primary/90 to-blue-600 text-primary-foreground relative">
       <div className="mb-8">
         <div className="text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-primary-foreground">

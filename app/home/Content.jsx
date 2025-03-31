@@ -285,13 +285,13 @@ const Content = ({ data, user }) => {
   const hasMoreFiles = docs.length > 3;
 
   return (
-    <div className="max-w-full h-screen mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-primary/90 to-purple-600">
+    <div className="max-w-full lg:h-screen mx-auto px-4 text-white sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-primary/90 to-blue-600">
       <div className="mb-12">
         <div className="text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-background">
             Files
           </h1>
-          <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="mt-3 text-lg text-background max-w-2xl mx-auto">
             Upload, manage and share your files securely from one place.
           </p>
         </div>
@@ -388,9 +388,9 @@ const Content = ({ data, user }) => {
           {!loading && !error && docs.length === 0 && (
             <Card className="border-dashed bg-muted/30">
               <CardContent className="py-12 text-center">
-                <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Files Found</h3>
-                <p className="text-muted-foreground mb-6">
+                <Info className="h-12 w-12 text-muted-background mx-auto mb-4" />
+                <h3 className="text-lg text-background font-medium mb-2">No Files Found</h3>
+                <p className="text-muted-background mb-6">
                   You haven't uploaded any files yet. Use the form to upload your first file.
                 </p>
               </CardContent>
