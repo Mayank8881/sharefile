@@ -80,7 +80,7 @@ export async function POST(req) {
     }
 
     // ✅ Generate the correct access URL (Replace `/file/` with `/access/`)
-    const accessUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/access/${id}`;
+    const accessUrl = `https://sharefile-three.vercel.app/access/${id}`;
 
     // ✅ Setup nodemailer transporter
     const transporter = nodemailer.createTransport({
