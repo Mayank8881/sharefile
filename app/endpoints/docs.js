@@ -7,18 +7,20 @@ const uploadFile=async (file) =>{
     const fileName=Date.now()+'-'+file.name;
     const filePath=await bucket.upload(fileName,file);
     const fileUrl=bucket.getPublicUrl(filePath.data.path);
-
-    return {file_path :filePath.data.path,file_url:fileUrl.data.publicUrl}
+    // Get file type (MIME type)
+    const file_type = file.type || null;
+    return {file_path :filePath.data.path,file_url:fileUrl.data.publicUrl, file_type};
 }
 
 export const addDocAPI = async (val) =>{
     const res=await supabase.auth.getUser(0);
-    const {file_path,file_url}=await uploadFile(val.file);
+    const {file_path,file_url,file_type}=await uploadFile(val.file);
 
     await supabase.from('doc').insert({
         title: val.title,
         file_url,
         file_path,
+        file_type, // Store file_type
         uid:res.data.user.id
     })
 }

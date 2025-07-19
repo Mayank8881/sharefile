@@ -13,11 +13,13 @@ import {
   AlertCircle, 
   Loader2, 
   CheckCircle, 
-  Link as LinkIcon
+  Link as LinkIcon,
+  X
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Navigation from "@/app/components/Navigation";
 import Footer from "@/app/components/Footer";
+import { useRef } from "react";
 
 // const FilePage = () => {
 //   const { id } = useParams();
@@ -269,6 +271,9 @@ const FilePage = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(null); // 'image' or 'pdf'
+  const modalRef = useRef();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -379,16 +384,46 @@ const FilePage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex justify-center mb-6">
-                      <div className="bg-primary/10 p-6 rounded-full">
-                        <File className="h-12 w-12 text-primary" />
-                      </div>
-                    </div>
+                    
                     <div className="space-y-2">
-                      <h3 className="font-medium text-lg">{data.title}</h3>
                       {data.date && (
                         <div className="text-sm text-muted-foreground">
                           Uploaded on {formatDate(data.date)}
+                        </div>
+                      )}
+                      {/* File Preview Section */}
+                      {data.file_type && (
+                        <div className="mt-4">
+                          {data.file_type.startsWith("image/") && (
+                            <img
+                              src={data.file_url}
+                              alt={data.title}
+                              className="max-h-64 rounded shadow mx-auto cursor-pointer"
+                              onClick={() => { setModalOpen(true); setModalType('image'); }}
+                            />
+                          )}
+                          {data.file_type === "application/pdf" && (
+                            <div className="cursor-pointer" onClick={() => { setModalOpen(true); setModalType('pdf'); }}>
+                              <iframe
+                                src={data.file_url}
+                                title="PDF Preview"
+                                className="w-full h-64 border rounded pointer-events-none"
+                              />
+                              <div className="text-center text-xs text-muted-foreground mt-1">Click to enlarge</div>
+                            </div>
+                          )}
+                          {data.file_type.startsWith("video/") && (
+                            <video controls className="w-full max-h-64 rounded shadow mx-auto">
+                              <source src={data.file_url} type={data.file_type} />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                          {data.file_type.startsWith("audio/") && (
+                            <audio controls className="w-full mt-2">
+                              <source src={data.file_url} type={data.file_type} />
+                              Your browser does not support the audio element.
+                            </audio>
+                          )}
                         </div>
                       )}
                     </div>
@@ -489,6 +524,34 @@ const FilePage = () => {
             </div>
           </div>
         ) : null}
+        {/* Modal for enlarged preview */}
+        {modalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+            onClick={e => { if (e.target === modalRef.current) setModalOpen(false); }}
+            ref={modalRef}
+          >
+            <div className="relative bg-transparent max-w-3xl w-full flex items-center justify-center">
+              <button
+                className="absolute top-4 right-4 text-white bg-black bg-opacity-60 rounded-full p-2 hover:bg-opacity-80 z-10"
+                onClick={() => setModalOpen(false)}
+                aria-label="Close preview"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              {modalType === 'image' && (
+                <img src={data.file_url} alt={data.title} className="max-h-[80vh] max-w-full rounded shadow-lg" />
+              )}
+              {modalType === 'pdf' && (
+                <iframe
+                  src={data.file_url}
+                  title="PDF Full Preview"
+                  className="w-[90vw] h-[80vh] bg-white rounded shadow-lg"
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>
