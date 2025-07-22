@@ -7,13 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDocAPI } from "../../endpoints/docs";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-const UploadForm = ({ edit, user }) => {
+const UploadForm = ({ edit, user, mutationKey }) => {
   const [val, setVal] = useState({ title: "", file: null });
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (edit) {
@@ -22,39 +24,38 @@ const UploadForm = ({ edit, user }) => {
     }
   }, [edit]);
 
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (payload) => {
+      setLoading(true);
+      setError('');
+      await addDocAPI(payload);
+      setLoading(false);
+    },
+    onSuccess: () => {
+      toast.success('File uploaded successfully!');
+      queryClient.invalidateQueries(mutationKey);
+      setVal({ title: '', file: null });
+      setFileName('');
+    },
+    onError: () => {
+      setLoading(false);
+      toast.error('Error uploading document. Please try again.');
+    },
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess(false);
-
+    setError('');
     if (!val.title) {
-      setError("Please enter a title for your file");
+      setError('Please enter a title for your file');
       return;
     }
-    
     if (!val.file && !edit) {
-      setError("Please select a file to upload");
+      setError('Please select a file to upload');
       return;
     }
-
-    try {
-      setLoading(true);
-      await addDocAPI(val);
-      setLoading(false);
-      setSuccess(true);
-      
-      if (!edit) {
-        // Only reset form if not editing
-        setVal({ title: "", file: null });
-        setFileName("");
-      }
-      
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (error) {
-      setLoading(false);
-      setError("Error uploading document. Please try again.");
-      console.error("Error uploading document:", error);
-    }
+    uploadMutation.mutate(val);
   };
 
   const handleFileChange = (e) => {
@@ -119,18 +120,12 @@ const UploadForm = ({ edit, user }) => {
             </div>
           )}
 
-          {success && (
-            <div className="bg-green-100 text-green-800 text-sm p-3 rounded-md">
-              File {edit ? "updated" : "uploaded"} successfully!
-            </div>
-          )}
-
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={loading}
+            disabled={loading || uploadMutation.isLoading}
           >
-            {loading ? "Processing..." : edit ? "Update File" : "Upload File"}
+            {loading || uploadMutation.isLoading ? 'Processing...' : edit ? 'Update File' : 'Upload File'}
           </Button>
         </form>
       </CardContent>

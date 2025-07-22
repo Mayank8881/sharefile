@@ -1,106 +1,3 @@
-// "use client";
-// import { useEffect, useState } from "react";
-// import Link from "next/link";
-// import DeleteIcon from "./components/DeleteIcon";
-// import EditIcon from "./components/EditIcon";
-// import UploadForm from "./components/UploadForm";
-// import { createClient } from "../utils/supabase/client";
-// import { deleteDocAPI } from "../endpoints/docs";
-
-// const Content = ({ data, user }) => {
-//   const [edit, setEdit] = useState(null);
-//   const [docs, setDocs] = useState(data || []);
-
-//   const supabase = createClient();
-
-//   useEffect(() => {
-//     if (!user) return;
-
-//     const fetchFiles = async () => {
-//       if (!user || !user.id) {
-//         console.error("User ID is missing.");
-//         return;
-//       }
-    
-//       const { data: files, error } = await supabase
-//         .from("doc")
-//         .select("*")
-//         .eq("uid", user.id);
-    
-//       if (error) {
-//         console.error("Error fetching files:", error.message || error);
-//       } else {
-//         setDocs(files);
-//       }
-//     };
-    
-
-//     fetchFiles();
-
-//     const channel = supabase
-//       .channel("docChannel")
-//       .on(
-//         "postgres_changes",
-//         { event: "*", schema: "public", table: "doc" },
-//         (payload) => {
-//           console.log("Supabase update:", payload);
-
-//           if (payload.eventType === "INSERT" && payload.new.user_id === user.id) {
-//             setDocs((prev) => [payload.new, ...prev]); // ✅ Add only if it belongs to the user
-//           } else if (payload.eventType === "DELETE") {
-//             setDocs((prev) => prev.filter((el) => el.id !== payload.old.id));
-//           }
-//         }
-//       )
-//       .subscribe();
-
-//     return () => {
-//       channel.unsubscribe();
-//     };
-//   }, [user]);
-
-//   // Handle document deletion
-//   const handleDelete = async (item) => {
-//     const { error } = await supabase.from("doc").delete().eq("id", item.id);
-
-//     if (error) {
-//       console.error("Error deleting file:", error);
-//     } else {
-//       setDocs((prev) => prev.filter((el) => el.id !== item.id));
-//     }
-//   };
-
-//   return (
-//     <section>
-//       <div className="max-w-96 mx-auto">
-//         <UploadForm edit={edit} user={user} />
-//       </div>
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mt-10">
-//         {docs.length > 0 ? (
-//           docs.map((item) => (
-//             <div key={item.id} className="border rounded-md shadow-md p-4">
-//               <Link href={`/file/${item.id}`}>
-//                 <h4 className="font-bold text-lg">{item.title}</h4>
-//               </Link>
-//               <div className="flex justify-between">
-//                 <small>{item.date}</small>
-//                 <div className="flex space-x-4">
-//                   <EditIcon onClick={() => setEdit(item)} />
-//                   <DeleteIcon onClick={() => handleDelete(item)} />
-//                 </div>
-//               </div>
-//             </div>
-//           ))
-//         ) : (
-//           <p>No files available</p>
-//         )}
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default Content;
-
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -109,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "../utils/supabase/client";
-import { deleteDocAPI } from "../endpoints/docs";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
+import { getDocsAPI, deleteDocAPI } from '../endpoints/docs';
 import UploadForm from "./components/UploadForm";
 import {
   DropdownMenu,
@@ -122,86 +22,60 @@ import {
 
 const Content = ({ data, user }) => {
   const [edit, setEdit] = useState(null);
-  const [docs, setDocs] = useState(data || []);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showMoreFiles, setShowMoreFiles] = useState(false);
+  const queryClient = useQueryClient();
 
-  const supabase = createClient();
+  // Fetch files with react-query
+  const {
+    data: docs = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['docs', user?.id],
+    queryFn: () => getDocsAPI(user.id),
+    enabled: !!user?.id,
+    refetchOnWindowFocus: false,
+  });
 
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteDocAPI,
+    onSuccess: (_, item) => {
+      toast.success('File deleted successfully');
+      queryClient.invalidateQueries(['docs', user.id]);
+      if (edit && edit.id === item.id) setEdit(null);
+    },
+    onError: () => toast.error('Error deleting file'),
+  });
+
+  // Real-time updates (Supabase subscription)
   useEffect(() => {
     if (!user) return;
-
-    const fetchFiles = async () => {
-      if (!user || !user.id) {
-        console.error("User ID is missing.");
-        return;
-      }
-      
-      setLoading(true);
-      const { data: files, error } = await supabase
-        .from("doc")
-        .select("*")
-        .eq("uid", user.id);
-      
-      setLoading(false);
-      
-      if (error) {
-        setError("Error loading your files. Please refresh the page.");
-        console.error("Error fetching files:", error.message || error);
-      } else {
-        setDocs(files);
-      }
-    };
-    
-    fetchFiles();
-
+    const supabase = createClient();
     const channel = supabase
-      .channel("docChannel")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "doc" },
-        (payload) => {
-          console.log("Supabase update:", payload);
-
-          if (payload.eventType === "INSERT" && payload.new.user_id === user.id) {
-            setDocs((prev) => [payload.new, ...prev]);
-          } else if (payload.eventType === "DELETE") {
-            setDocs((prev) => prev.filter((el) => el.id !== payload.old.id));
-          }
-        }
-      )
+      .channel('docChannel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'doc' }, (payload) => {
+        queryClient.invalidateQueries(['docs', user.id]);
+      })
       .subscribe();
+    return () => channel.unsubscribe();
+  }, [user, queryClient]);
 
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [user]);
-
-  // Handle document deletion
-  const handleDelete = async (item) => {
-    if (!confirm("Are you sure you want to delete this file?")) {
-      return;
-    }
-    
-    try {
-      const { error } = await supabase.from("doc").delete().eq("id", item.id);
-
-      if (error) {
-        throw error;
-      } else {
-        setDocs((prev) => prev.filter((el) => el.id !== item.id));
-        // If editing the file that was just deleted, clear edit state
-        if (edit && edit.id === item.id) {
-          setEdit(null);
-        }
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
+  // Handle delete
+  const handleDelete = (item) => {
+    if (window.confirm('Are you sure you want to delete this file?')) {
+      deleteMutation.mutate(item);
     }
   };
 
-  const formatDate = (dateString) => {
+  // Handle edit
+  const handleEditClick = (item) => {
+    setEdit(item);
+    document.getElementById('upload-form-section').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const formatDate = (item) => {
+    const dateString = item.date || item.created_at;
     if (!dateString) return "Unknown date";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -209,12 +83,6 @@ const Content = ({ data, user }) => {
       month: "short",
       day: "numeric",
     });
-  };
-
-  const handleEditClick = (item) => {
-    setEdit(item);
-    // Smooth scroll to the upload form
-    document.getElementById("upload-form-section").scrollIntoView({ behavior: "smooth" });
   };
 
   // Render file card
@@ -239,7 +107,7 @@ const Content = ({ data, user }) => {
               <div className="flex items-center text-muted-foreground text-sm mt-1 space-x-4">
                 <div className="flex items-center">
                   <Clock className="h-3.5 w-3.5 mr-1.5" />
-                  <span>{formatDate(item.date)}</span>
+                  <span>{formatDate(item)}</span>
                 </div>
               </div>
             </div>
@@ -279,13 +147,9 @@ const Content = ({ data, user }) => {
     </Card>
   );
 
-  // Determine which files to display
-  const displayedFiles = docs.slice(0, 3);
-  const hiddenFiles = docs.slice(3);
-  const hasMoreFiles = docs.length > 3;
-
   return (
-    <div className="max-w-full lg:h-screen mx-auto px-4 text-white sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-primary/90 to-blue-600">
+    <div className="max-w-full lg:h-screen mx-auto px-4 text-white sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-primary/90 to-blue-800">
+      <Toaster />
       <div className="mb-12">
         <div className="text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-background">
@@ -299,7 +163,7 @@ const Content = ({ data, user }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1" id="upload-form-section">
-          <UploadForm edit={edit} user={user} />
+          <UploadForm edit={edit} user={user} mutationKey={['docs', user?.id]} />
           
           {edit && (
             <div className="mt-4 text-center">
@@ -318,10 +182,10 @@ const Content = ({ data, user }) => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Your Files ({docs.length})</h2>
             
-            {hasMoreFiles && (
+            {docs.length > 3 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button className="bg-white text-black hover:bg-slate-200" size="sm">
                     <MoreHorizontal className="h-4 w-4 mr-2" />
                     More Files
                   </Button>
@@ -329,7 +193,7 @@ const Content = ({ data, user }) => {
                 <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuLabel>Additional Files</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {hiddenFiles.map((file) => (
+                  {docs.slice(3).map((file) => (
                     <DropdownMenuItem key={file.id} className="cursor-pointer">
                       <div className="flex items-center justify-between w-full">
                         <Link href={`/file/${file.id}`} className="flex-1 hover:text-primary">
@@ -369,23 +233,23 @@ const Content = ({ data, user }) => {
             )}
           </div>
           
-          {loading && (
+          {isLoading && (
             <div className="flex justify-center items-center p-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           )}
           
-          {error && (
+          {isError && (
             <div className="bg-destructive/10 text-destructive p-4 rounded-md flex items-start gap-3">
               <AlertCircle className="h-5 w-5 mt-0.5" />
               <div>
                 <p className="font-medium">Error Loading Files</p>
-                <p className="text-sm">{error}</p>
+                <p className="text-sm">{error?.message || 'Unknown error'}</p>
               </div>
             </div>
           )}
           
-          {!loading && !error && docs.length === 0 && (
+          {!isLoading && !isError && docs.length === 0 && (
             <Card className="border-dashed bg-muted/30">
               <CardContent className="py-12 text-center">
                 <Info className="h-12 w-12 text-muted-background mx-auto mb-4" />
@@ -398,7 +262,7 @@ const Content = ({ data, user }) => {
           )}
           
           <div className="grid grid-cols-1 gap-4">
-            {displayedFiles.map(renderFileCard)}
+            {docs.slice(0, 3).map(renderFileCard)}
           </div>
         </div>
       </div>

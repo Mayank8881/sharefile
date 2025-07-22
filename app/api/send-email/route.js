@@ -93,7 +93,7 @@ export async function POST(req) {
 
     // ✅ Email content
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "SHARE FILE <process.env.EMAIL_USER>",
       to: recipientEmail,
       subject: "Secure File Shared with You",
       html: `
