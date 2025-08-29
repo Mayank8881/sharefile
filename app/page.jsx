@@ -373,21 +373,21 @@ const LandingPage = () => {
                 role: "Marketing Director",
                 review:
                   "FileShare has transformed how our team shares assets with clients. The security features give us peace of mind, and the interface is intuitive.",
-                avatar: "/placeholder.svg?height=100&width=100",
+                avatar: "/boy.png",
               },
               {
                 name: "Sarah Smith",
                 role: "Freelance Designer",
                 review:
                   "As a freelancer, I need to share large design files daily. FileShare makes it simple and professional. The password protection is a game-changer!",
-                avatar: "/placeholder.svg?height=100&width=100",
+                avatar: "/woman.png",
               },
               {
                 name: "Michael Johnson",
                 role: "IT Manager",
                 review:
                   "The end-to-end encryption and detailed access logs meet our strict security requirements. FileShare is now our company standard for file sharing.",
-                avatar: "/placeholder.svg?height=100&width=100",
+                avatar: "/gamer.png",
               },
             ].map((testimonial, index) => (
               <Card key={index} className="border bg-muted/30">

@@ -35,7 +35,7 @@ const Navigation = () => {
             <div className="bg-primary rounded-md p-1.5">
               <UploadCloud className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-foreground">ShareFile</span>
+            <span className="text-2xl font-bold text-foreground">ShareFiles</span>
           </div>
         </div>
         </Link>

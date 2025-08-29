@@ -74,6 +74,11 @@ const Content = ({ data, user }) => {
     document.getElementById('upload-form-section').scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Reset edit state after successful update
+  const handleUpdateSuccess = () => {
+    setEdit(null);
+  };
+
   const formatDate = (item) => {
     const dateString = item.date || item.created_at;
     if (!dateString) return "Unknown date";
@@ -163,19 +168,7 @@ const Content = ({ data, user }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1" id="upload-form-section">
-          <UploadForm edit={edit} user={user} mutationKey={['docs', user?.id]} />
-          
-          {edit && (
-            <div className="mt-4 text-center">
-              <Button 
-                variant="outline" 
-                onClick={() => setEdit(null)}
-                className="w-full max-w-md mx-auto"
-              >
-                Cancel Editing
-              </Button>
-            </div>
-          )}
+          <UploadForm edit={edit} user={user} mutationKey={['docs', user?.id]} onUpdateSuccess={handleUpdateSuccess} />
         </div>
         
         <div className="lg:col-span-2">
